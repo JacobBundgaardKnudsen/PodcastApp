@@ -5,8 +5,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.media.MediaPlayer;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
@@ -22,7 +20,6 @@ import java.util.regex.Pattern;
 public class MainActivity extends AppCompatActivity {
     MediaPlayer Song;
     int pause;
-
     int numberOfSubCasts = 0;
 
     String inputText;
@@ -61,9 +58,11 @@ public class MainActivity extends AppCompatActivity {
 
     }
     public void stop(View view){
-        Song.stop();
-        Song = null;
-        Toast.makeText(MainActivity.this, "Podcast Stopped", Toast.LENGTH_SHORT).show();
+        if(Song!=null) {
+            Song.stop();
+            Song = null;
+            Toast.makeText(MainActivity.this, "Podcast Stopped", Toast.LENGTH_SHORT).show();
+        }
 
     }
 
@@ -128,7 +127,7 @@ public class MainActivity extends AppCompatActivity {
         for(int i = -1; (i = inputText.indexOf(separator, i + 1)) != -1; ){
             current = Integer.parseInt(inputText.substring(i+1,i+7));
 
-            if (current < (currentNumber - 10000)){
+            if (current < (currentNumber - 6000)){
                 if(i > highest) {
                     highest = i;
                     start = i;
