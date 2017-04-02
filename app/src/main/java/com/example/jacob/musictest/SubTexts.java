@@ -3,17 +3,14 @@ package com.example.jacob.musictest;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.method.ScrollingMovementMethod;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.ScrollView;
 import android.widget.TextView;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class SubTexts extends AppCompatActivity {
@@ -36,6 +33,8 @@ public class SubTexts extends AppCompatActivity {
 
         SharedPreferences sharedPref = getSharedPreferences("PodCast", Context.MODE_PRIVATE);
         Map<String, ?> keys = sharedPref.getAll();
+
+
 
         for (Map.Entry<String, ?> entry : keys.entrySet()) {
             subTexts.append(entry.getKey() + ": " +

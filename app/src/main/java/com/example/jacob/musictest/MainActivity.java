@@ -14,6 +14,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 
@@ -21,11 +22,10 @@ public class MainActivity extends AppCompatActivity {
     MediaPlayer Song;
     int pause;
     int numberOfSubCasts = 0;
+    String songName = "a_young_inventors_plan_to_recycle";
 
     String inputText;
-    String separator = "[";
-
-
+    String separator = ">";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,7 +38,17 @@ public class MainActivity extends AppCompatActivity {
     public void play(View view){
 
         if(Song == null) {
-            Song = MediaPlayer.create(this, R.raw.podcast);
+
+            int songID = getResources().getIdentifier(songName+"audio","raw",getPackageName());
+            Song = MediaPlayer.create(this, songID);
+
+            SharedPreferences sharedPref = getSharedPreferences("PodCastSong", Context.MODE_PRIVATE);
+
+            SharedPreferences.Editor editor = sharedPref.edit();
+            editor.putString("currentSong", songName);
+            editor.apply();
+
+
             Song.start();
             Toast.makeText(MainActivity.this, "Podcast Started", Toast.LENGTH_SHORT).show();
         }
@@ -82,7 +92,10 @@ public class MainActivity extends AppCompatActivity {
                 inputText = loadText();
             } catch (IOException e){}
 
-            saveSub(trimText(extractText(getCurrentNumber())),counter());
+            //saveSub(trimText(extractText(getCurrentNumber())),counter());
+            //saveSub(extractText(30000),2);
+            saveSub(trimText(extractText(300000)),counter());
+
 
             Toast.makeText(MainActivity.this, "Podcast saved", Toast.LENGTH_SHORT).show();
             numberOfSubCasts++;
@@ -104,12 +117,17 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public String loadText() throws IOException{
-        InputStream is = this.getResources().openRawResource(R.raw.subs);
+        int subID = getResources().getIdentifier(songName,"raw",getPackageName());
+
+
+        //InputStream is = this.getResources().openRawResource(R.raw.a_young_inventors_plan_to_recycle);
+        InputStream is = getResources().openRawResource(getResources().getIdentifier(songName,"raw", getPackageName()));
         BufferedReader reader = new BufferedReader(new InputStreamReader(is));
         StringBuilder sb = new StringBuilder();
         String mLine = reader.readLine();
         while (mLine != null) {
             sb.append(mLine);
+            sb.append(" ");
             mLine = reader.readLine();
         }
         reader.close();
@@ -118,43 +136,67 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public String extractText(int currentNumber){
-        int lastSep = 0;
-        int highest = 0;
-        int start = 0;
-        int end = 0;
-        int current;
+        int lastSep = 0; int highest = 0; int start = 0; int end = 0;
+        int fcurrent, lcurrent;
 
+        //Looping through the subtitles
         for(int i = -1; (i = inputText.indexOf(separator, i + 1)) != -1; ){
-            current = Integer.parseInt(inputText.substring(i+1,i+7));
 
-            if (current < (currentNumber - 6000)){
+            //Converting HH:MM:SS into milliseconds
+            fcurrent = convertToMilliseconds(Integer.parseInt(inputText.substring(i-15,i-13)),  //Hours
+                    Integer.parseInt(inputText.substring(i-12,i-10)),                           //Minutes
+                    Integer.parseInt(inputText.substring(i-9,i-7)));                            //Seconds
+
+
+            lcurrent = convertToMilliseconds(Integer.parseInt(inputText.substring(i+2,i+4)),    //Hours
+                    Integer.parseInt(inputText.substring(i+5,i+7)),                             //Minutes
+                    Integer.parseInt(inputText.substring(i+8,i+10)));                           //Seconds
+
+            //Finding the sentence which were spoken six seconds earlier when the user pressed save
+            if (fcurrent < (currentNumber - 6000)){
                 if(i > highest) {
                     highest = i;
-                    start = i;
+                    start = i-17;
                 }
             }
-            else if (current > currentNumber && lastSep == 0){
-                lastSep = current;
-                end = i;
+            //Finding the sentence that were spoken when the user pressed save
+            else if (lcurrent > currentNumber && lastSep == 0){
+                lastSep = lcurrent;
+                end = i+10;
             }
         }
         return inputText.substring(start,end);
+
     }
 
     public String trimText(String eText){
-        String finalString;
+        String tfinalString;
 
-        Pattern p = Pattern.compile("\\[.*?\\]");
-        finalString = p.matcher(eText).replaceAll("");
 
-        return finalString;
+        String lineNumberPattern = "(\\d+\\s)";
+        String timeStampPattern = "([\\d:,]+)";
+
+        //Patterns of the two types of subtitle syntax (Linenumber, timestamp, -->, timestamp) and
+        //                                             (LineNumber, timestamp, -->, timestamp, space)
+        Pattern patwithspacing = Pattern.compile(lineNumberPattern + timeStampPattern + "( --> )" + timeStampPattern + "(\\s)");
+        Pattern patwithoutspacing = Pattern.compile(lineNumberPattern + timeStampPattern + "( --> )" + timeStampPattern);
+
+        //Removing/replacing the above patterns from the given text
+        tfinalString = patwithspacing.matcher(eText).replaceAll("");
+        return patwithoutspacing.matcher(tfinalString).replaceAll("");
     }
 
 
     public void saveSub(String str, int number){
-        SharedPreferences sharedPref = getSharedPreferences("PodCast", Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPref.edit();
-        editor.putString("subPodCast" + number, str);
+        SharedPreferences sharedPref = getSharedPreferences("PodCastSong", Context.MODE_PRIVATE);
+        String podCastName = sharedPref.getString("currentSong","");
+
+        Pattern p = Pattern.compile("(_)");
+
+
+        SharedPreferences SP = getSharedPreferences("PodCast",Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = SP.edit();
+        editor.putString(p.matcher(podCastName).replaceAll(" ") + " " + number, str);
         editor.apply();
     }
 
@@ -167,6 +209,9 @@ public class MainActivity extends AppCompatActivity {
         SharedPreferences sharedPref = getSharedPreferences("NumberOfSubs", Context.MODE_PRIVATE);
         return sharedPref.getInt("Counter", 0);
 
+    }
+    public int convertToMilliseconds (int hour, int minutes, int seconds) {
+        return (hour * 360 + minutes * 60 + seconds) * 1000;
     }
 
 }
