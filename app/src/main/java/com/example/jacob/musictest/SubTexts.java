@@ -2,9 +2,14 @@ package com.example.jacob.musictest;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.Html;
+import android.text.Spannable;
+import android.text.SpannableStringBuilder;
+import android.text.Spanned;
 import android.text.method.ScrollingMovementMethod;
 import android.view.View;
 import android.widget.Button;
@@ -17,6 +22,20 @@ public class SubTexts extends AppCompatActivity {
 
     TextView subTexts;
     Button b1;
+
+    /*
+    @SuppressWarnings("deprecation")
+    public static Spanned fromHtml(String html){
+        Spanned result;
+        if(android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+            result = Html.fromHtml(html,Html.FROM_HTML_MODE_LEGACY);
+        }
+        else {
+            result = Html.fromHtml(html);
+        }
+        return result;
+    }
+    */
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,10 +55,16 @@ public class SubTexts extends AppCompatActivity {
 
 
 
+
+        String boldStr;
         for (Map.Entry<String, ?> entry : keys.entrySet()) {
-            subTexts.append(entry.getKey() + ": " +
-                    entry.getValue().toString() + "\r\n" + "\r\n");
+            boldStr = entry.getKey();
+            subTexts.append(Html.fromHtml("<b>" + boldStr + ": </b>" + "<small>" +
+                    entry.getValue().toString()+ "</small>"));
+            subTexts.append("\r\n" + "\r\n");
         }
+
+
 
     }
 
@@ -58,4 +83,6 @@ public class SubTexts extends AppCompatActivity {
         }
 
     };
+
+
 }

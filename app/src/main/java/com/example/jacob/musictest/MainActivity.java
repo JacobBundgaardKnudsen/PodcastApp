@@ -3,10 +3,13 @@ package com.example.jacob.musictest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Typeface;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.Spannable;
+import android.text.SpannableStringBuilder;
 import android.view.View;
 import android.widget.Toast;
 
@@ -14,8 +17,12 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static android.R.id.list;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -39,7 +46,7 @@ public class MainActivity extends AppCompatActivity {
 
         if(Song == null) {
 
-            int songID = getResources().getIdentifier(songName+"audio","raw",getPackageName());
+            int songID = getResources().getIdentifier(songName+"_audio","raw",getPackageName());
             Song = MediaPlayer.create(this, songID);
 
             SharedPreferences sharedPref = getSharedPreferences("PodCastSong", Context.MODE_PRIVATE);
@@ -171,10 +178,26 @@ public class MainActivity extends AppCompatActivity {
 
     public String trimText(String eText){
         String tfinalString;
-
+        String finalString;
+        String content = "";
+        List<String> startList = new ArrayList<>();
+        List<String> endList = new ArrayList<>();
+        List<String> contentList = new ArrayList<>();
 
         String lineNumberPattern = "(\\d+\\s)";
         String timeStampPattern = "([\\d:,]+)";
+        String contentPattern = "(.*)";
+
+        Matcher matcher = Pattern.compile(lineNumberPattern + timeStampPattern + "( --> )" + timeStampPattern + "(\\s)" + contentPattern).matcher(eText);
+
+        while(matcher.find()) {
+            startList.add(matcher.group(2));
+            endList.add(matcher.group(4));
+            contentList.add(matcher.group(6));
+        }
+        for(int i = 0; i < contentList.size(); i++){
+            content = content + contentList.get(i);
+        }
 
         //Patterns of the two types of subtitle syntax (Linenumber, timestamp, -->, timestamp) and
         //                                             (LineNumber, timestamp, -->, timestamp, space)
@@ -182,21 +205,27 @@ public class MainActivity extends AppCompatActivity {
         Pattern patwithoutspacing = Pattern.compile(lineNumberPattern + timeStampPattern + "( --> )" + timeStampPattern);
 
         //Removing/replacing the above patterns from the given text
-        tfinalString = patwithspacing.matcher(eText).replaceAll("");
-        return patwithoutspacing.matcher(tfinalString).replaceAll("");
+        tfinalString = patwithspacing.matcher(content).replaceAll("");
+        finalString = patwithoutspacing.matcher(tfinalString).replaceAll("");
+
+
+        return startList.get(0) + " --> " + endList.get(endList.size()-1) + "\n" + finalString;
     }
 
 
+
     public void saveSub(String str, int number){
+        String headline;
         SharedPreferences sharedPref = getSharedPreferences("PodCastSong", Context.MODE_PRIVATE);
         String podCastName = sharedPref.getString("currentSong","");
 
         Pattern p = Pattern.compile("(_)");
+        headline = p.matcher(podCastName).replaceAll(" ") + " " + number;
 
 
         SharedPreferences SP = getSharedPreferences("PodCast",Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = SP.edit();
-        editor.putString(p.matcher(podCastName).replaceAll(" ") + " " + number, str);
+        editor.putString(headline, str);
         editor.apply();
     }
 
