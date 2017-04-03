@@ -23,20 +23,6 @@ public class SubTexts extends AppCompatActivity {
     TextView subTexts;
     Button b1;
 
-    /*
-    @SuppressWarnings("deprecation")
-    public static Spanned fromHtml(String html){
-        Spanned result;
-        if(android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
-            result = Html.fromHtml(html,Html.FROM_HTML_MODE_LEGACY);
-        }
-        else {
-            result = Html.fromHtml(html);
-        }
-        return result;
-    }
-    */
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -44,36 +30,38 @@ public class SubTexts extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        //Finding the reset button from the layout and adding a function which is executed whenever the button is pressed
         b1 = (Button) findViewById(R.id.reset);
         b1.setOnClickListener(myhandler1);
 
+        //Finding the textView and makes it scrollable
         subTexts = (TextView) findViewById(R.id.subText);
         subTexts.setMovementMethod(new ScrollingMovementMethod());
 
-        SharedPreferences sharedPref = getSharedPreferences("PodCast", Context.MODE_PRIVATE);
+        //Loading all items saved in "podcast"
+        SharedPreferences sharedPref = getSharedPreferences("Podcast", Context.MODE_PRIVATE);
         Map<String, ?> keys = sharedPref.getAll();
 
 
-
-
         String boldStr;
+
+        //Looping through all the items saved in podcast and appends them into a string
         for (Map.Entry<String, ?> entry : keys.entrySet()) {
             boldStr = entry.getKey();
             subTexts.append(Html.fromHtml("<b>" + boldStr + ": </b>" + "<small>" +
                     entry.getValue().toString()+ "</small>"));
             subTexts.append("\r\n" + "\r\n");
         }
-
-
-
     }
 
     View.OnClickListener myhandler1 = new View.OnClickListener() {
         public void onClick(View v) {
-            SharedPreferences sharedPref = getSharedPreferences("PodCast", Context.MODE_PRIVATE);
+            //Removes all text saved in "podcast" and removes the text in SUBPODCASTS
+            SharedPreferences sharedPref = getSharedPreferences("Podcast", Context.MODE_PRIVATE);
             sharedPref.edit().clear().commit();
             subTexts.setText("");
 
+            //Resets the counter that keeps track of how many sub podcasts that have been saved
             SharedPreferences sharedPrefCounter = getSharedPreferences("NumberOfSubs", Context.MODE_PRIVATE);
             sharedPrefCounter.edit().clear().commit();
 
@@ -81,8 +69,5 @@ public class SubTexts extends AppCompatActivity {
             editor.putInt("Counter", 0);
             editor.apply();
         }
-
     };
-
-
 }
