@@ -102,12 +102,12 @@ public class MainActivity extends AppCompatActivity {
                 inputText = loadText();
             } catch (IOException e){}
 
-            //saveSub(trimText(extractText(getCurrentNumber())),counter());
+            saveSub(trimText(extractText(getCurrentNumber())),counter());
             //saveSub(extractText(30000),2);
-            saveSub(trimText(extractText(300000)),counter());
+            //saveSub(trimText(extractText(300000)),counter());
 
 
-            Toast.makeText(MainActivity.this, "Podcast saved", Toast.LENGTH_SHORT).show();
+            Toast.makeText(MainActivity.this, "Bit saved", Toast.LENGTH_SHORT).show();
             numberOfSubCasts++;
 
             //Increasing / keeping track of the numbers of podcasts
@@ -220,7 +220,11 @@ public class MainActivity extends AppCompatActivity {
         finalString = patternWithoutSpacing.matcher(tfinalString).replaceAll("");
 
         //Returning the start time and end time followed by the content
+        return startList.get(0).substring(3,8) + " --> " + endList.get(endList.size()-1).substring(3,8) + "\n" + finalString;
+
+        /*
         return startList.get(0) + " --> " + endList.get(endList.size()-1) + "\n" + finalString;
+        */
     }
 
 

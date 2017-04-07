@@ -42,14 +42,28 @@ public class SubTexts extends AppCompatActivity {
         SharedPreferences sharedPref = getSharedPreferences("Podcast", Context.MODE_PRIVATE);
         Map<String, ?> keys = sharedPref.getAll();
 
-
-        String boldStr;
+        String tempTitle;
+        String title;
+        String newTitle ="";
 
         //Looping through all the items saved in podcast and appends them into a string
         for (Map.Entry<String, ?> entry : keys.entrySet()) {
-            boldStr = entry.getKey();
-            subTexts.append(Html.fromHtml("<b>" + boldStr + ": </b>" + "<small>" +
+
+            tempTitle = entry.getKey();
+            title = tempTitle.substring(0,tempTitle.length()-2);
+
+            if(!title.equals(newTitle)) {
+                subTexts.append(Html.fromHtml("<b>" + title + ": </b>"));
+            }
+            newTitle = title;
+
+            subTexts.append(Html.fromHtml("<small>" +
                     entry.getValue().toString()+ "</small>"));
+
+            /*
+            subTexts.append(Html.fromHtml("<b>" + title + ": </b>" + "<small>" +
+                    entry.getValue().toString()+ "</small>"));
+            */
             subTexts.append("\r\n" + "\r\n");
         }
     }
