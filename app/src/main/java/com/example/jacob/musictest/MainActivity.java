@@ -33,8 +33,8 @@ public class MainActivity extends AppCompatActivity {
     MediaPlayer Song;
 
     //Name of song name, edit this if multiple podcasts are added
-    String songName = "a_young_inventors_plan_to_recycle";
-
+    //String songName = "a_young_inventors_plan_to_recycle";
+    String songName;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,27 +45,35 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void play(View view){
+        getPodcastName();
 
-        if(Song == null) {
+        Toast.makeText(MainActivity.this, songName, Toast.LENGTH_SHORT).show();
 
-            //Finding the ID of the chosen podcast
-            int songID = getResources().getIdentifier(songName+"_audio","raw",getPackageName());
-            Song = MediaPlayer.create(this, songID);
+        if(songName != null && !songName.equals("noPodcast")) {
 
-            //Saving the the podcast name for later use
-            SharedPreferences sharedPref = getSharedPreferences("PodcastSong", Context.MODE_PRIVATE);
-            SharedPreferences.Editor editor = sharedPref.edit();
-            editor.putString("currentSong", songName);
-            editor.apply();
+            if(Song == null) {
 
-            //Starting the podcast
-            Song.start();
-            Toast.makeText(MainActivity.this, "Podcast Started", Toast.LENGTH_SHORT).show();
-        }
-        else if(!Song.isPlaying()){
-            Song.seekTo(pause);
-            Song.start();
-            Toast.makeText(MainActivity.this, "Podcast Continued", Toast.LENGTH_SHORT).show();
+                //Finding the ID of the chosen podcast
+                int songID = getResources().getIdentifier(songName + "_audio", "raw", getPackageName());
+                Song = MediaPlayer.create(this, songID);
+
+
+                //Saving the the podcast name for later use
+                SharedPreferences sharedPref = getSharedPreferences("PodcastSong", Context.MODE_PRIVATE);
+                SharedPreferences.Editor editor = sharedPref.edit();
+                editor.putString("currentSong", songName);
+                editor.apply();
+
+                //Starting the podcast
+                Song.start();
+                Toast.makeText(MainActivity.this, "Podcast Started", Toast.LENGTH_SHORT).show();
+            }
+                else if (!Song.isPlaying()) {
+                Song.seekTo(pause);
+                Song.start();
+                Toast.makeText(MainActivity.this, "Podcast Continued", Toast.LENGTH_SHORT).show();
+
+            }
         }
     }
 
@@ -79,12 +87,18 @@ public class MainActivity extends AppCompatActivity {
 
     }
     public void stop(View view){
+        getPodcastName();
         if(Song!=null) {
             Song.stop();
             Song = null;
             Toast.makeText(MainActivity.this, "Podcast Stopped", Toast.LENGTH_SHORT).show();
         }
 
+    }
+
+    public void podcasts(View view) {
+        Intent activity = new Intent(this,ListOfPodcasts.class);
+        startActivity(activity);
     }
 
     public void save(View view){
@@ -260,5 +274,21 @@ public class MainActivity extends AppCompatActivity {
     //Converts the timing syntax of TedTalk to milliseconds
     public int convertToMilliseconds (int hour, int minutes, int seconds) {
         return (hour * 360 + minutes * 60 + seconds) * 1000;
+    }
+
+    //Retrieving the name of the podcast
+    public void getPodcastName(){
+
+        SharedPreferences sharedPref = getSharedPreferences("PodcastSong", Context.MODE_PRIVATE);
+        songName = sharedPref.getString("currentSong","noPodcast");
+
+        /*
+        if(!songName.equals("noPodcast")){
+
+            int songID = getResources().getIdentifier(songName+"_audio","raw",getPackageName());
+            Song = MediaPlayer.create(this, songID);
+
+        }
+        */
     }
 }

@@ -22,6 +22,10 @@
         <activity
             android:name=".SubTexts"
             android:label="@string/title_activity_sub_texts"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".ListOfPodcasts"
+            android:label="@string/title_activity_list_of_podcasts"
             android:theme="@style/AppTheme.NoActionBar"></activity>
     </application>
 
