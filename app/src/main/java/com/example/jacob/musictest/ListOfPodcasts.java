@@ -49,7 +49,7 @@ public class ListOfPodcasts extends AppCompatActivity {
     View.OnClickListener myhandler2 = new View.OnClickListener() {
         public void onClick(View view) {
             //setPodcast("podcast2");
-            play("a_young_inventors_plan_to_recycle");
+            play("the_surprising_science_of_happiness");
             Toast.makeText(ListOfPodcasts.this, "Podcast selected", Toast.LENGTH_SHORT).show();
         }
     };
@@ -57,7 +57,7 @@ public class ListOfPodcasts extends AppCompatActivity {
     View.OnClickListener myhandler3 = new View.OnClickListener() {
         public void onClick(View view) {
             //setPodcast("podcast3");
-            play("a_young_inventors_plan_to_recycle");
+            play("the_paradox_of_choice");
             Toast.makeText(ListOfPodcasts.this, "Podcast selected", Toast.LENGTH_SHORT).show();
         }
     };
@@ -65,7 +65,7 @@ public class ListOfPodcasts extends AppCompatActivity {
     View.OnClickListener myhandler4 = new View.OnClickListener() {
         public void onClick(View view) {
             //setPodcast("podcast4");
-            play("a_young_inventors_plan_to_recycle");
+            play("life_lessons_from_an_ad_man");
             Toast.makeText(ListOfPodcasts.this, "Podcast selected", Toast.LENGTH_SHORT).show();
         }
     };
