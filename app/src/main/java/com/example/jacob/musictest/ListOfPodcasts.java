@@ -1,6 +1,7 @@
 package com.example.jacob.musictest;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.media.MediaPlayer;
 import android.os.Bundle;
@@ -42,31 +43,31 @@ public class ListOfPodcasts extends AppCompatActivity {
         public void onClick(View view) {
             //setPodcast("a_young_inventors_plan_to_recycle");
             play("a_young_inventors_plan_to_recycle");
-            Toast.makeText(ListOfPodcasts.this, "Podcast selected", Toast.LENGTH_SHORT).show();
+            changeView();
         }
     };
 
     View.OnClickListener myhandler2 = new View.OnClickListener() {
         public void onClick(View view) {
             //setPodcast("podcast2");
-            play("a_young_inventors_plan_to_recycle");
-            Toast.makeText(ListOfPodcasts.this, "Podcast selected", Toast.LENGTH_SHORT).show();
+            play("the_surprising_science_of_happiness");
+            changeView();
         }
     };
 
     View.OnClickListener myhandler3 = new View.OnClickListener() {
         public void onClick(View view) {
             //setPodcast("podcast3");
-            play("a_young_inventors_plan_to_recycle");
-            Toast.makeText(ListOfPodcasts.this, "Podcast selected", Toast.LENGTH_SHORT).show();
+            play("the_paradox_of_choice");
+            changeView();
         }
     };
 
     View.OnClickListener myhandler4 = new View.OnClickListener() {
         public void onClick(View view) {
             //setPodcast("podcast4");
-            play("a_young_inventors_plan_to_recycle");
-            Toast.makeText(ListOfPodcasts.this, "Podcast selected", Toast.LENGTH_SHORT).show();
+            play("life_lessons_from_an_ad_man");
+            changeView();
         }
     };
 
@@ -83,7 +84,7 @@ public class ListOfPodcasts extends AppCompatActivity {
 
     public void play(String songName){
 
-        if(podcastName == null) {
+        //if(podcastName == null) {
 
             //Finding the ID of the chosen podcast
             //int songID = getResources().getIdentifier(songName+"_audio","raw",getPackageName());
@@ -97,8 +98,13 @@ public class ListOfPodcasts extends AppCompatActivity {
 
             //Starting the podcast
             //podcastName.start();
-            Toast.makeText(ListOfPodcasts.this, "Podcast Started", Toast.LENGTH_SHORT).show();
-        }
+            Toast.makeText(ListOfPodcasts.this, "Podcast Selected", Toast.LENGTH_SHORT).show();
+        //}
+    }
+
+    public void changeView(){
+        Intent activity = new Intent(this,MainActivity.class);
+        startActivity(activity);
     }
 
 }

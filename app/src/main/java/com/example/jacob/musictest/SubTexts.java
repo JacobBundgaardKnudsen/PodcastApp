@@ -16,6 +16,7 @@ public class SubTexts extends AppCompatActivity {
 
     TextView subTexts;
     Button b1;
+    String podCastName = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,7 +34,10 @@ public class SubTexts extends AppCompatActivity {
         subTexts.setMovementMethod(new ScrollingMovementMethod());
 
         //Loading all items saved in "podcast"
-        SharedPreferences sharedPref = getSharedPreferences("Podcast", Context.MODE_PRIVATE);
+        SharedPreferences SP = getSharedPreferences("PodcastSong", Context.MODE_PRIVATE);
+        podCastName = SP.getString("currentSong", "");
+
+        SharedPreferences sharedPref = getSharedPreferences(podCastName, Context.MODE_PRIVATE);
         Map<String, ?> keys = sharedPref.getAll();
 
         String tempTitle;
@@ -45,6 +49,8 @@ public class SubTexts extends AppCompatActivity {
 
             tempTitle = entry.getKey();
             title = tempTitle.substring(0,tempTitle.length()-2);
+
+
 
             if(!title.equals(newTitle)) {
                 subTexts.append(Html.fromHtml("<b>" + title + ": </b>"));
@@ -60,12 +66,13 @@ public class SubTexts extends AppCompatActivity {
             */
             subTexts.append("\r\n" + "\r\n");
         }
+        //subTexts.setText(Integer.toString(keys.size()));
     }
 
     View.OnClickListener myhandler1 = new View.OnClickListener() {
         public void onClick(View v) {
             //Removes all text saved in "podcast" and removes the text in SUBPODCASTS
-            SharedPreferences sharedPref = getSharedPreferences("Podcast", Context.MODE_PRIVATE);
+            SharedPreferences sharedPref = getSharedPreferences(podCastName, Context.MODE_PRIVATE);
             sharedPref.edit().clear().commit();
             subTexts.setText("");
 
