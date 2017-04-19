@@ -45,11 +45,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void play(View view){
-        getPodcastName();
+        songName = getPodcastName();
 
-        Toast.makeText(MainActivity.this, songName, Toast.LENGTH_SHORT).show();
+        SharedPreferences SP = getSharedPreferences("PodcastSong", Context.MODE_PRIVATE);
+        boolean isPlaying = SP.getBoolean("isPlaying",false);
 
-        if(songName != null && !songName.equals("noPodcast")) {
+        if(songName != null && !songName.equals("noPodcast") && !isPlaying) {
 
             if(Song == null) {
 
@@ -62,11 +63,13 @@ public class MainActivity extends AppCompatActivity {
                 SharedPreferences sharedPref = getSharedPreferences("PodcastSong", Context.MODE_PRIVATE);
                 SharedPreferences.Editor editor = sharedPref.edit();
                 editor.putString("currentSong", songName);
+                editor.putBoolean("isPlaying", true);
                 editor.apply();
 
                 //Starting the podcast
                 Song.start();
                 Toast.makeText(MainActivity.this, "Podcast Started", Toast.LENGTH_SHORT).show();
+
             }
                 else if (!Song.isPlaying()) {
                 Song.seekTo(pause);
@@ -87,7 +90,7 @@ public class MainActivity extends AppCompatActivity {
 
     }
     public void stop(View view){
-        getPodcastName();
+        songName = getPodcastName();
         if(Song!=null) {
             Song.stop();
             Song = null;
@@ -102,11 +105,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void save(View view){
-        if(Song != null){
+        if(Song != null && songName != "noPodcast"){
+
             pause = Song.getCurrentPosition();
 
             //Saving the time from where the podcast was saved
-            SharedPreferences sharedPref = getSharedPreferences("Podcast timings", Context.MODE_PRIVATE);
+            SharedPreferences sharedPref = getSharedPreferences("PodcastTimings", Context.MODE_PRIVATE);
             SharedPreferences.Editor editor = sharedPref.edit();
             editor.putInt("currentPos", pause);
             editor.apply();
@@ -116,9 +120,11 @@ public class MainActivity extends AppCompatActivity {
                 inputText = loadText();
             } catch (IOException e){}
 
-            saveSub(trimText(extractText(getCurrentNumber())),counter());
-            //saveSub(extractText(30000),2);
-            //saveSub(trimText(extractText(300000)),counter());
+            saveSub(trimText(extractText(pause)),counter());
+            //saveSub(extractText(30000),counter());
+            //saveSub(trimText(extractText(pause)),counter());
+            //trimText(extractText(pause));
+            //extractText(pause);
 
 
             Toast.makeText(MainActivity.this, "Bit saved", Toast.LENGTH_SHORT).show();
@@ -132,17 +138,18 @@ public class MainActivity extends AppCompatActivity {
             SharedPreferences.Editor editorC = sharedPrefCounter.edit();
             editorC.putInt("Counter", tempCounter+1);
             editorC.apply();
+
         }
     }
 
     //Retrieving the number at which the podcast was last paused
     public int getCurrentNumber(){
-        SharedPreferences sharedPref = getSharedPreferences("Podcast timings", Context.MODE_PRIVATE);
-        return sharedPref.getInt("currentPos",100);
+        SharedPreferences sharedPref = getSharedPreferences("PodcastTimings", Context.MODE_PRIVATE);
+        return sharedPref.getInt("currentPos",0);
     }
 
     public String loadText() throws IOException{
-        int subID = getResources().getIdentifier(songName,"raw",getPackageName());
+        //int subID = getResources().getIdentifier(songName,"raw",getPackageName());
 
         //Finding the ID of the subtitles
         InputStream is = getResources().openRawResource(getResources().getIdentifier(songName,"raw", getPackageName()));
@@ -162,79 +169,87 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public String extractText(int currentNumber){
+
+
         int lastSep = 0; int highest = 0; int start = 0; int end = 0;
-        int fcurrent, lcurrent;
+        int fCurrent, lCurrent;
 
         //Looping through the subtitles
         for(int i = -1; (i = inputText.indexOf(separator, i + 1)) != -1; ){
 
             //Converting HH:MM:SS into milliseconds
-            fcurrent = convertToMilliseconds(Integer.parseInt(inputText.substring(i-15,i-13)),  //Hours
+            fCurrent = convertToMilliseconds(Integer.parseInt(inputText.substring(i-15,i-13)),  //Hours
                     Integer.parseInt(inputText.substring(i-12,i-10)),                           //Minutes
                     Integer.parseInt(inputText.substring(i-9,i-7)));                            //Seconds
 
 
-            lcurrent = convertToMilliseconds(Integer.parseInt(inputText.substring(i+2,i+4)),    //Hours
+            lCurrent = convertToMilliseconds(Integer.parseInt(inputText.substring(i+2,i+4)),    //Hours
                     Integer.parseInt(inputText.substring(i+5,i+7)),                             //Minutes
                     Integer.parseInt(inputText.substring(i+8,i+10)));                           //Seconds
 
-            //Finding the sentence which were spoken six seconds earlier when the user pressed save
-            if (fcurrent < (currentNumber - 6000)){
-                if(i > highest) {
-                    highest = i;
-                    start = i-17;
+                //Finding the sentence which were spoken six seconds earlier when the user pressed save
+                if (fCurrent < (currentNumber - 6000)) {
+                    if (i > highest) {
+                        highest = i;
+                        start = i - 17;
+                    }
                 }
+                //Finding the sentence that were spoken when the user pressed save
+                else if (lCurrent > currentNumber && lastSep == 0) {
+                    lastSep = lCurrent;
+                    end = i + 10;
             }
-            //Finding the sentence that were spoken when the user pressed save
-            else if (lcurrent > currentNumber && lastSep == 0){
-                lastSep = lcurrent;
-                end = i+10;
-            }
+
         }
+
         return inputText.substring(start,end);
 
     }
 
     public String trimText(String eText){
+            String tfinalString;
+            String finalString;
+            String content = "";
+            String timestamp ="";
 
-        String tfinalString;
-        String finalString;
-        String content = "";
+            List<String> startList = new ArrayList<>();
+            List<String> endList = new ArrayList<>();
+            List<String> contentList = new ArrayList<>();
 
-        List<String> startList = new ArrayList<>();
-        List<String> endList = new ArrayList<>();
-        List<String> contentList = new ArrayList<>();
+            //Patterns used to categorize the different parts in the text
+            String lineNumberPattern = "(\\d+\\s)";
+            String timeStampPattern = "([\\d:,]+)";
+            String contentPattern = "(.*)";
 
-        //Patterns used to categorize the different parts in the text
-        String lineNumberPattern = "(\\d+\\s)";
-        String timeStampPattern = "([\\d:,]+)";
-        String contentPattern = "(.*)";
+            Matcher matcher = Pattern.compile(lineNumberPattern + timeStampPattern + "( --> )" + timeStampPattern + "(\\s)" + contentPattern).matcher(eText);
 
-        Matcher matcher = Pattern.compile(lineNumberPattern + timeStampPattern + "( --> )" + timeStampPattern + "(\\s)" + contentPattern).matcher(eText);
 
-        //Adding different patterns into start time, end time and content
-        while(matcher.find()) {
-            startList.add(matcher.group(2));
-            endList.add(matcher.group(4));
-            contentList.add(matcher.group(6));
-        }
+            //Adding different patterns into start time, end time and content
+            while (matcher.find()) {
+                startList.add(matcher.group(2));
+                endList.add(matcher.group(4));
+                contentList.add(matcher.group(6));
+            }
 
-        //Creating a single string containing all content
-        for(int i = 0; i < contentList.size(); i++){
-            content = content + contentList.get(i);
-        }
+            //Creating a single string containing all content
+                for (int i = 0; i < contentList.size(); i++) {
+                    content = content + contentList.get(i);
+                }
 
-        //Patterns of the two types of subtitle syntax (Linenumber, timestamp, -->, timestamp) and
-        //                                             (LineNumber, timestamp, -->, timestamp, space)
-        Pattern patternWithSpacing = Pattern.compile(lineNumberPattern + timeStampPattern + "( --> )" + timeStampPattern + "(\\s)");
-        Pattern patternWithoutSpacing = Pattern.compile(lineNumberPattern + timeStampPattern + "( --> )" + timeStampPattern);
 
-        //Removing/replacing the above patterns from the given text
-        tfinalString = patternWithSpacing.matcher(content).replaceAll("");
-        finalString = patternWithoutSpacing.matcher(tfinalString).replaceAll("");
+            //Patterns of the two types of subtitle syntax (Linenumber, timestamp, -->, timestamp) and
+            //                                             (LineNumber, timestamp, -->, timestamp, space)
+            Pattern patternWithSpacing = Pattern.compile(lineNumberPattern + timeStampPattern + "( --> )" + timeStampPattern + "(\\s)");
+            Pattern patternWithoutSpacing = Pattern.compile(lineNumberPattern + timeStampPattern + "( --> )" + timeStampPattern);
 
-        //Returning the start time and end time followed by the content
-        return startList.get(0).substring(3,8) + " --> " + endList.get(endList.size()-1).substring(3,8) + "\n" + finalString;
+            //Removing/replacing the above patterns from the given text
+            tfinalString = patternWithSpacing.matcher(content).replaceAll("");
+            finalString = patternWithoutSpacing.matcher(tfinalString).replaceAll("");
+
+            //Returning the start time and end time followed by the content
+            if(startList != null && endList != null && startList.size() != 0 && endList.size() != 0)
+                timestamp = startList.get(0).substring(3, 8) + " --> " + endList.get(endList.size() - 1).substring(3, 8) + "\n";
+            return timestamp + finalString;
 
         /*
         return startList.get(0) + " --> " + endList.get(endList.size()-1) + "\n" + finalString;
@@ -242,25 +257,24 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    public void saveSub(String str, int number){
+    public void saveSub(String str, int number) {
         String headline;
+            //Retrieving the name of the podcast
+            SharedPreferences sharedPref = getSharedPreferences("PodcastSong", Context.MODE_PRIVATE);
+            String podCastName = sharedPref.getString("currentSong", "");
 
-        //Retrieving the name of the podcast
-        SharedPreferences sharedPref = getSharedPreferences("PodcastSong", Context.MODE_PRIVATE);
-        String podCastName = sharedPref.getString("currentSong","");
+            //Renaming the podcast name by removing "_" with " " and also adding a number to the podcast
+            //corresponding to the current number of podcasts saved
+            Pattern p = Pattern.compile("(_)");
+            headline = p.matcher(podCastName).replaceAll(" ") + " " + number;
 
-        //Renaming the podcast name by removing "_" with " " and also adding a number to the podcast
-        //corresponding to the current number of podcasts saved
-        Pattern p = Pattern.compile("(_)");
-        headline = p.matcher(podCastName).replaceAll(" ") + " " + number;
+            //Saving the new name along with corresponding subtitles
 
-        //Saving the new name along with corresponding subtitles
-        SharedPreferences SP = getSharedPreferences("Podcast",Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = SP.edit();
-        editor.putString(headline, str);
-        editor.apply();
+            SharedPreferences SP = getSharedPreferences(podCastName, Context.MODE_PRIVATE);
+            SharedPreferences.Editor editor = SP.edit();
+            editor.putString(headline, str);
+            editor.apply();
     }
-
     public void showPodcasts(View view){
         Intent activity = new Intent(this,SubTexts.class);
         startActivity(activity);
@@ -277,10 +291,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     //Retrieving the name of the podcast
-    public void getPodcastName(){
+    public String getPodcastName(){
 
         SharedPreferences sharedPref = getSharedPreferences("PodcastSong", Context.MODE_PRIVATE);
-        songName = sharedPref.getString("currentSong","noPodcast");
+        return sharedPref.getString("currentSong","noPodcast");
 
         /*
         if(!songName.equals("noPodcast")){
